@@ -15,6 +15,7 @@ contract ticketingSystem{
     uint amountPaid;
     bool isAvailable;
     bool isAvailableForSale;
+    uint saleprice;
   }
 
   mapping(uint256 => Ticket) public ticketsRegister;
@@ -109,6 +110,7 @@ function createTicket(uint idart,uint idven,uint dat,uint _concertid,address a )
   ticketsRegister[ticketCounter].id_venue=idven;
   ticketsRegister[ticketCounter].date=dat;
   ticketsRegister[ticketCounter].idticket=ticketCounter;
+  ticketsRegister[ticketCounter].saleprice=0;
   ticketCounter++;
 
 }
@@ -192,7 +194,8 @@ function useTicket(uint _ticketId) public
 {
   
   require(msg.sender==ticketsRegister[_ticketId].owner);
-  
+  //require(ticketsRegister[_ticketId].date==now );
+
     ticketsRegister[_ticketId].isAvailable=false;
     ticketsRegister[_ticketId].owner=address(0x0000);
 }  
@@ -212,51 +215,24 @@ function cashOutConcert(uint _concertId, address payable _cashOutAddress) public
 }
 
 
+ function offerTicketForSale(uint _ticketId, uint _salePrice) public
+ {
+  require(msg.sender==ticketsRegister[_ticketId].owner);
+  require(ticketsRegister[_ticketId].amountPaid>=_salePrice);
+  ticketsRegister[_ticketId].isAvailableForSale=true;
+  ticketsRegister[_ticketId].saleprice=_salePrice;
 
+ }
 
-  modifier onlyOwner() {
-    require(msg.sender == venueOwner);
-    _;
-  }
-
-  modifier notOwner() {
-    require(msg.sender != venueOwner);
-    _;
-  }
-
-  modifier releaseTrue() {
-    require(releaseEther);
-    _;
-  }
-
-  function Tickets(uint price,bytes32 title)public{
-    ticketPrice = price;
-    name_tick = title;
-    venueOwner = msg.sender;
-    releaseEther = false;
-  }
-
-  function ()external{
-    releaseEther = false;
-  }
-
-  function allowPurchase() onlyOwner public {
-    releaseEther = true;
-    emit CanPurchase(releaseEther);
-  }
-
-  function lockPurchase() onlyOwner public{
-    releaseEther = false;
-   emit CanPurchase(releaseEther);
-  }
-/**
-  function createTicket() payable notOwner public{
-    if (msg.value == ticketPrice) {
-      pendingTransactions[msg.sender] = msg.value;
-      bytes32 hash = keccak256(abi.encode(msg.sender));
-      tickets[hash] = Ticket(false, msg.sender);
-      emit TicketKey(hash);
-    }
-  }**/
+function buySecondHandTicket(uint _ticketId) public
+{
+  require(ticketsRegister[_ticketId].saleprice>=);
 
 }
+
+
+
+
+  }
+
+
