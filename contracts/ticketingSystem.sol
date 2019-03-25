@@ -19,14 +19,6 @@ contract ticketingSystem{
   }
 
   mapping(uint256 => Ticket) public ticketsRegister;
-  mapping(address => uint) public pendingTransactions;
-  bool public releaseEther;
-  uint public ticketPrice;
-  address public venueOwner;
-  bytes32 public name_tick;
-  event TicketKey(bytes32 ticketKey);
-  event CanPurchase(bool canPurchase);
-  event PaidFor(bool paid);
 
 mapping (uint256 => Artist) public artistsRegister;
 
@@ -126,6 +118,7 @@ struct Concert
   bool validatedByArtist;
   bool validatedByVenue;
   uint totalSoldTicket;
+  address owner;
   uint totalMoneyCollected;
 }
 
@@ -139,6 +132,7 @@ function createConcert (uint idar, uint idve, uint dat,uint tickpri) public
   concertsRegister[concertcounter].validatedByVenue=false;
   concertsRegister[concertcounter].totalSoldTicket=0;
   concertsRegister[concertcounter].totalMoneyCollected==0;
+  concertsRegister[concertcounter].owner=msg.sender;
 
   if(concertcounter%2==0)
   {concertsRegister[concertcounter].validatedByArtist=false;}
@@ -194,9 +188,10 @@ function useTicket(uint _ticketId) public
 {
   
   require(msg.sender==ticketsRegister[_ticketId].owner);
-  //require(ticketsRegister[_ticketId].date==now );
-
+  require(ticketsRegister[_ticketId].date<=now+ 1 days );
+  require(concertsRegister[ticketsRegister[_ticketId].concertId].validatedByVenue);
     ticketsRegister[_ticketId].isAvailable=false;
+    ticketsRegister[_ticketId].isAvailableForSale=false;
     ticketsRegister[_ticketId].owner=address(0x0000);
 }  
 
@@ -209,7 +204,9 @@ function transferTicket(uint _ticketId, address payable _newOwner) public
 
 function cashOutConcert(uint _concertId, address payable _cashOutAddress) public
 {
-  require(concertsRegister[_concertId].concertDate<uint256(now) );
+  require(now>=concertsRegister[_concertId].concertDate );
+ require(msg.sender == concertsRegister[_concertId].owner);
+ concertsRegister[_concertId].totalMoneyCollected=0;
 
 
 }
@@ -224,10 +221,12 @@ function cashOutConcert(uint _concertId, address payable _cashOutAddress) public
 
  }
 
-function buySecondHandTicket(uint _ticketId) public
+function buySecondHandTicket(uint _ticketId) public payable
 {
-  require(ticketsRegister[_ticketId].saleprice>=);
+  require(ticketsRegister[_ticketId].saleprice==msg.value);
+  require(ticketsRegister[_ticketId].isAvailableForSale==true);
 
+  ticketsRegister[_ticketId].owner=msg.sender;
 }
 
 
